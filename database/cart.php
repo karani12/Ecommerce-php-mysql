@@ -1,0 +1,142 @@
+<?php
+     
+    class cart
+     {
+         public $db = null;
+
+         public function __construct(DBController $db)
+         {
+             if (!isset($db->conn)) {
+                 return null;
+             }
+             $this->db = $db;
+         }
+
+         // insert into cart
+         public function insertintoCart($params, $table = "cart")
+         {
+             if ($this->db->conn != null) {
+                 if ($params != null) {
+                     // insert user id
+                     // get table columns
+                     $columns = implode(',', array_keys($params));
+                     var_dump($columns);
+                    
+                     $values = implode(',', array_values($params));
+                     var_dump($values);
+                     
+                     //  query
+                     $query = sprintf("INSERT INTO %s(%s) VALUES(%s)", $table, $columns, $values);
+
+                     // execute
+                     echo $query;
+
+                     $result = $this->db->conn->query($query);
+                     return $result;
+                 }
+                 // get user_id and item_id
+             }
+         }
+         public function addToCart($userid, $itemid)
+         {
+             if (isset($userid)&&isset($itemid)) {
+                 $params = array(
+                 "user_id" => $userid,
+                 "item_id" => $itemid
+             );
+                 $result = $this->insertintoCart($params);
+                 if ($result) {
+                     header("Location:".$_SERVER['PHP_SELF']);
+                 }
+             }
+         }
+         public function getSum($arr)
+         {
+             $sum = 0;
+             foreach ($arr as $item) {
+                 $sum += floatval($item[0]);
+             }
+             return sprintf('%2f', $sum);
+         }
+
+         public function deleteCart($item_id=null,$table = 'cart'){
+             if($item_id != null)
+             {
+             $result = $this->db->conn->query("DELETE FROM {$table} WHERE item_id = {$item_id}");
+                if($result){
+                    header("Location".$_SERVER['PHP_SELF']);
+                }
+                return $result;
+             }
+
+            //  get item id of shopping cart key
+            
+        
+        }
+         public function deleteWishlist($item_id=null,$table = 'wishlist'){
+             if($item_id != null)
+             {
+             $result = $this->db->conn->query("DELETE FROM {$table} WHERE item_id = {$item_id}");
+                if($result){
+                    header("Location".$_SERVER['PHP_SELF']);
+                }
+                return $result;
+             }
+
+            //  get item id of shopping cart key
+            
+        
+        }
+        public function getCartId($cartArray = null, $key = 'item_id')
+        {
+            if($cartArray != null)
+            {
+                $cart_id = array_map(function($value)use($key){
+                    return $value[$key];
+                },$cartArray);
+                return $cart_id;
+            }
+        }
+        // save fo later
+        public function saveForLater($item_id = null, $saveTable = "wishlist",$fromTable = "cart"){
+            if($item_id != null)
+            {
+            $sql = "INSERT INTO {$saveTable} SELECT * FROM {$fromTable} WHERE item_id = {$item_id};";
+            $sql .= "DELETE FROM {$fromTable} WHERE item_id = {$item_id}";
+            echo $sql;
+
+            // multiquery
+            $result = $this->db->conn->multi_query($sql);
+            if($result){
+                header("Location:".$_SERVER['PHP_SELF']);
+            }
+            return $result;
+
+            }
+
+
+
+        }
+        public function addFromWishlist($item_id = null, $saveTable = "cart",$fromTable = "wishlist"){
+            if ($item_id != null) {
+                $sql = "INSERT INTO {$saveTable} SELECT * FROM {$fromTable} WHERE item_id = {$item_id};";
+                $sql .= "DELETE FROM {$fromTable} WHERE item_id = {$item_id}";
+                echo $sql;
+
+                // multiquery
+                $result = $this->db->conn->multi_query($sql);
+                if ($result) {
+                    header("Location:".$_SERVER['PHP_SELF']);
+                }
+                return $result;
+            }
+        }
+
+    }
+    
+
+     
+     
+
+
+?>
